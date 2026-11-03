@@ -4,17 +4,18 @@ const HandleError = require("../utils/handleerror")
 
 
 // GET USER
-const getUser = async(req,res)=>{
-    try {
-        const user = await User.find();
-        return res.status(202).json({
-            success: true,
-            message:"Sucessfully fetched User",
-            user
-        })
-    } catch (error) {
-        return HandleError(res, error);
-    }
+async function getUser(req, res) {
+  try {
+    const user = await User.find();
+    return res.status(200).json({
+      success: true,
+      message: "Sucessfully find User ",
+      user
+    })
+
+  } catch (error) {
+    return HandleError(res, error)
+  }
 }
 // REGISTER USER
 const registerUser = async (req, res) => {
@@ -72,8 +73,86 @@ const registerUser = async (req, res) => {
   }
 };
 
+// UserBy Id
+async function userbyid(req, res) {
+  try {
+    const { id } = req.params;
+    console.log(id)
+    const user = await User.findById(id);
+    return res.status(200).json({
+      sucess: true,
+      message: "Successfully fetched the user",
+      user
+    })
+  } catch (error) {
+    return HandleError(res, error)
+  }
+}
+
+//DeleteUser
+async function deleteuser(req, res) {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not Found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully deleted the user"
+    });
+
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+// UpdateUser
+async function updateuser(req, res) {
+  try {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+
+    // Hash password if provided
+    let updateData = {
+      name,
+      email
+    };
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      updateData,
+      { returnDocument: 'after' }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully updated the user",
+      user
+    });
+
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
 
 
 module.exports = {
-  registerUser, getUser
+  registerUser, getUser, userbyid, deleteuser, updateuser
 };
