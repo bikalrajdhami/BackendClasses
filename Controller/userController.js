@@ -153,6 +153,60 @@ async function updateuser(req, res) {
 }
 
 
+// LOGIN USER
+async function userLogin(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    // Check required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter email and password"
+      });
+    }
+
+    // Find user
+    const existUser = await User.findOne({ email });
+
+    if (!existUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(
+      password,
+      existUser.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // Login successful
+    return res.status(200).json({
+      success: true,
+      message: "Successfully Login",
+      user: {
+        id: existUser._id,
+        name: existUser.name,
+        email: existUser.email,
+        role: existUser.role
+      }
+    });
+
+  } catch (error) {
+    return HandleError(res, error);
+  }
+}
+
+
 module.exports = {
-  registerUser, getUser, userbyid, deleteuser, updateuser
+  registerUser, getUser, userbyid, deleteuser, updateuser,userLogin
 };
